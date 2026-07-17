@@ -10,7 +10,7 @@ Identify PRIDE studies that use specific sample-preparation, instrumentation, or
 De-glycosylated N-glycopeptides, based on the use of PNGase F and variable modification deamidation in data analysis. 
 
 ## Dataset
-36K PRIDE JSON documents, plus openai-3-small text embeddings. A small number of curated true positives (~80) are available.
+36K PRIDE JSON documents, plus openai-3-small text embeddings. A small number of curated true positives (~80) are available. See [data](data).
 
 ## [Project description](https://docs.google.com/document/d/19IhZZCkSDMxfsL9_kliZi6n9SMeQbrwM0TVgOtJ7mI8)
 
