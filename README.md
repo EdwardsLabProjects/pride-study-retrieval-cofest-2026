@@ -4,7 +4,7 @@ Repository for the PRIDE Study Document Retrieval Problem team at BOSC CoFest 20
 Email nje5@georgetown.edu to be added to the project.
 
 ## Objective
-Identify PRIDE studies that use specific sample-preparation, instrumentation, or data-processing steps not described by the PRIDE data-model from the text-based study summaries, for tagging or reanalysis.
+Identify [PRIDE studies](https://www.ebi.ac.uk/pride/) that use specific sample-preparation, instrumentation, or data-processing steps not described by the PRIDE data-model from the text-based study summaries, for tagging or reanalysis.
 
 ## Specific Use Case
 De-glycosylated N-glycopeptides, based on the use of PNGase F and variable modification deamidation in data analysis. 
