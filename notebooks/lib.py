@@ -4,6 +4,8 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 import os, os.path, subprocess
 import pandas
 
+VERSION='1.0.4'
+
 def download_embeddings(model="openai-3-small"):
     # files...
     csvfile = f"pride-embeddings-{model}.csv"
@@ -147,7 +149,56 @@ def create_tfidf_features(md_dataframe, train_accessions, train_y, test_accessio
 
     return tfidf_df, tfidf_vectorizer
 
-VERSION='1.0.3'
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+from sklearn.utils import shuffle
+
+def train_document_classifier(embeddings, tfidf, train_acc, train_y, test_acc, test_y, use_embed=True, use_tfidf=True, **kwargs):
+
+    # Use np.hstack to concatenate features horizontally
+    train_values = []
+    if use_embed:
+        train_values.append(embeddings[train_acc].values.T)
+    if use_tfidf:
+        train_values.append(tfidf[train_acc].values.T)
+    train = np.hstack(train_values)
+    if len(test_acc)>0:
+        have_test = True
+        # Use np.hstack for test features as well
+        test_values = []
+        if use_embed:
+            test_values.append(embeddings[test_acc].values.T)
+        if use_tfidf:
+            test_values.append(tfidf[test_acc].values.T)
+        test = np.hstack(test_values)
+
+    # 4. Shuffle the datasets so labels are randomized (not all 1s followed by all 0s)
+    X_train, y_train = shuffle(train, train_y)
+    if have_test:
+        X_test, y_test = shuffle(test, test_y)
+
+    print(f"Training data shape: {X_train.shape} (Positives: {sum((y==1) for y in y_train)}, Negatives: {sum((y==0) for y in y_train)})")
+    if have_test:
+        print(f"Testing data shape: {X_test.shape} (Positives: {sum((y==1) for y in y_test)}, Negatives: {sum((y==0) for y in y_test)})")
+
+    # 5. Initialize and train the Logistic Regression model
+    model = LogisticRegression(max_iter=1000, **kwargs)
+    model.fit(X_train, y_train)
+
+    # 6. Evaluate the model on the withheld test set
+    if not have_test:
+        return model
+
+    y_pred = model.predict(X_test)
+
+    print("\n--- Model Evaluation ---")
+    print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+    print("\nClassification Report:")
+    # target_names let us interpret the 1s and 0s easily in the terminal
+    print(classification_report(y_test, y_pred, target_names=["Background (0)", "Seed-like (1)"]))
+
+    return model
+
 print(f"Version: {VERSION}")
 
    
