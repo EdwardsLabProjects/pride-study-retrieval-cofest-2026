@@ -48,7 +48,7 @@ def knownstudies():
     assert len(set(tp) & set(tn)) == 0, "TP and TN should not intersect!"
     return tp,tn
 
-VERSION=1.0.0
+VERSION='1.0.0'
 print(f"Version: {VERSION}")
 
    
