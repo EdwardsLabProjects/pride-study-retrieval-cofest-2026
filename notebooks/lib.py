@@ -3,7 +3,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 
 import os, os.path, subprocess
 
-VERSION='1.0.23'
+VERSION='1.0.24'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -251,6 +251,7 @@ def show_top_feature_examples(top_features_df, md_dataframe, n_features=10, n_ex
             sentences = re.split(r'(?<=[.!?])\s+', text)
             match = next((s for s in sentences if pattern.search(s)), None)
             if match:
+                match = match.split('\n\n')[0]
                 examples.append((study['prideacc'], match.strip()))
             if len(examples) >= n_examples:
                 break
