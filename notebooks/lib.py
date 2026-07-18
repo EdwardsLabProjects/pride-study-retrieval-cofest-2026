@@ -3,7 +3,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 
 import os, os.path, subprocess
 
-VERSION='1.0.22'
+VERSION='1.0.23'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -234,6 +234,28 @@ def top_features(logreg_model,tfidf_model,nembed=0,use_embed=True,use_tfidf=True
         most_important_features = feature_importance_df.sort_values(by='Abs_Coefficient', ascending=False)
 
         return significant_embedding_coeffs,non_zero_tfidf_coeffs,most_important_features.drop(columns=['Abs_Coefficient'])
+
+import re
+
+def show_top_feature_examples(top_features_df, md_dataframe, n_features=10, n_examples=5):
+    for _, row in top_features_df.head(n_features).iterrows():
+        feature = row['Feature']
+        coef = row['Coefficient']
+        print(f"\n=== '{feature}' (coef: {coef:+.4f}) ===")
+        pattern = re.compile(re.escape(feature), re.IGNORECASE)
+        examples = []
+        for _, study in md_dataframe.iterrows():
+            text = study['text']
+            if not pattern.search(text):
+                continue
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+            match = next((s for s in sentences if pattern.search(s)), None)
+            if match:
+                examples.append((study['prideacc'], match.strip()))
+            if len(examples) >= n_examples:
+                break
+        for acc, sentence in examples:
+            print(f"  {acc}: {sentence}")
 
 print(f"Version: {VERSION}")
 
