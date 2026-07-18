@@ -96,7 +96,7 @@ def split_train_test(allacc, seeds, neg_seeds, test_size=0.2, bgsize=25):
       return train_accessions, train_y, test_accessions, test_y
 
 
-VERSION='1.0.1'
+VERSION='1.0.2'
 print(f"Version: {VERSION}")
 
    
