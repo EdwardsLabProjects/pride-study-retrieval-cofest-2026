@@ -3,7 +3,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 
 import os, os.path, subprocess
 
-VERSION='1.0.32'
+VERSION='1.0.33'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -236,7 +236,7 @@ def top_features(logreg_model,tfidf_model,nembed=0,use_embed=True,use_tfidf=True
 
 from tqdm import tqdm
 
-def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn, use_embed=True, use_tfidf=True, n=30, batch_size=500):
+def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn, use_embed=True, use_tfidf=True, batch_size=500):
     md_indexed = md.set_index('prideacc')
     allacc = [acc for acc in emb.columns if acc in md_indexed.index]
     batches = [allacc[i:i+batch_size] for i in range(0, len(allacc), batch_size)]
@@ -267,7 +267,7 @@ def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn
         'true_positive': [acc in tp_set for acc in allacc],
         'true_negative': [acc in tn_set for acc in allacc],
     })
-    return results.sort_values('probability', ascending=False).head(n).reset_index(drop=True)
+    return results.sort_values('probability', ascending=False).reset_index(drop=True)
 
 import re
 
