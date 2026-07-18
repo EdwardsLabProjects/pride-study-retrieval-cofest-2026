@@ -48,6 +48,54 @@ def knownstudies():
     assert len(set(tp) & set(tn)) == 0, "TP and TN should not intersect!"
     return tp,tn
 
+from sklearn.model_selection import train_test_split
+
+def split_train_test(allacc, seeds, neg_seeds, test_size=0.2, bgsize=25):
+      seeds = list(set(seeds)&set(allacc))
+      neg_seeds = list(set(neg_seeds)&set(allacc))
+      bg = list(set(allacc)-set(seeds))
+      nbgsel = int(round(len(seeds)*bgsize))
+      if len(bg) < len(neg_seeds):
+        raise ValueError("Not enough background embeddings to create selected background.")
+      if len(bg) < nbgsel:
+        raise ValueError("Not enough background embeddings to create selected background.")
+
+      if test_size > 0.0:
+        # 1. Split the original seed set
+        pos_train_accs, pos_test_accs = train_test_split(
+            seeds,
+            test_size=test_size
+        )
+        have_test = True
+      else:
+        pos_train_accs = list(seeds)
+        pos_test_accs = []
+        have_test = False
+
+      selected_accessions = list(seeds)
+      train_accessions = list(pos_train_accs)
+      test_accessions = list(pos_test_accs)
+
+      num_train_samples = len(pos_train_accs)
+      num_bg_train_samples = int(round(num_train_samples*bgsize))
+      num_test_samples = len(pos_test_accs)
+      num_bg_test_samples = nbgsel-num_bg_train_samples
+
+      selbg = neg_seeds + list(random.sample(list(set(bg)-set(neg_seeds)),
+                                             nbgsel-len(neg_seeds)))
+      random.shuffle(selbg)
+      seltrainbg = selbg[:num_bg_train_samples]
+      seltestbg = selbg[num_bg_train_samples:]
+
+      selected_accessions += selbg
+      train_accessions += seltrainbg
+      test_accessions += seltestbg
+      train_y = [1]*num_train_samples + [0]*num_bg_train_samples
+      test_y = [1]*num_test_samples + [0]*num_bg_test_samples
+
+      return train_accessions, train_y, test_accessions, test_y
+
+
 VERSION='1.0.1'
 print(f"Version: {VERSION}")
 
