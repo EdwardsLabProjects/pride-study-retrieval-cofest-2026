@@ -263,7 +263,7 @@ def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn
     results = pd.DataFrame({
         'prideacc': allacc,
         'title': [extract_title(t) for t in md_indexed.loc[allacc, 'text']],
-        'probability': all_probs,
+        'probability': [round(p, 4) for p in all_probs],
         'in_training': [acc in train_set for acc in allacc],
         'true_positive': [acc in tp_set for acc in allacc],
         'true_negative': [acc in tn_set for acc in allacc],
