@@ -3,7 +3,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 
 import os, os.path, subprocess
 
-VERSION='1.0.30'
+VERSION='1.0.31'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -206,34 +206,33 @@ def train_document_classifier(embeddings, tfidf, train_acc, train_y, test_acc, t
     return model
 
 def top_features(logreg_model,tfidf_model,nembed=0,use_embed=True,use_tfidf=True,**kwargs):
-    
+
+    parts = []
+    significant_embedding_coeffs = 0
+    non_zero_tfidf_coeffs = 0
+
     if use_embed:
-        # Calculate significant embedding coefficients
         embedding_coefficients = logreg_model.coef_[0][:nembed]
         significant_embedding_coeffs = np.sum(embedding_coefficients != 0)
+        parts.append(pd.DataFrame({
+            'Feature': [f'embed_{i}' for i in range(nembed)],
+            'Coefficient': embedding_coefficients
+        }))
 
     if use_tfidf:
-        # Get the TF-IDF feature names from the fitted vectorizer
         tfidf_feature_names = tfidf_model.get_feature_names_out()
-
-        # The trained_model.coef_ is an array of coefficients for all features (embeddings + tfidf)
-        # We need the coefficients corresponding to the TF-IDF features
         tfidf_coefficients = logreg_model.coef_[0][nembed:]
-
-        # Calculate and print the number of non-zero TF-IDF coefficients
         non_zero_tfidf_coeffs = np.sum(tfidf_coefficients != 0)
-
-        # Create a DataFrame to link feature names with their coefficients
-        feature_importance_df = pd.DataFrame({
+        parts.append(pd.DataFrame({
             'Feature': tfidf_feature_names,
             'Coefficient': tfidf_coefficients
-        })
+        }))
 
-        # Sort by the absolute value of the coefficient to find the most important features
-        feature_importance_df['Abs_Coefficient'] = feature_importance_df['Coefficient'].abs()
-        most_important_features = feature_importance_df.sort_values(by='Abs_Coefficient', ascending=False)
+    all_features = pd.concat(parts, ignore_index=True)
+    all_features['Abs_Coefficient'] = all_features['Coefficient'].abs()
+    most_important_features = all_features.sort_values(by='Abs_Coefficient', ascending=False)
 
-        return significant_embedding_coeffs,non_zero_tfidf_coeffs,most_important_features.drop(columns=['Abs_Coefficient'])
+    return significant_embedding_coeffs, non_zero_tfidf_coeffs, most_important_features.drop(columns=['Abs_Coefficient'])
 
 from tqdm import tqdm
 
