@@ -2,9 +2,8 @@ BASEURL = "https://edwardslab.bmcb.georgetown.edu/~nedwards/dropbox/6ItUS2tEdC/"
 GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retrieval-cofest-2026/refs/heads/main/data/"
 
 import os, os.path, subprocess
-import pandas
 
-VERSION='1.0.16'
+VERSION='1.0.17'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -148,6 +147,16 @@ def create_tfidf_features(md_dataframe, train_accessions, train_y, test_accessio
     tfidf_df = pd.concat([tfidf_df_train, tfidf_df_test]).T
 
     return tfidf_df, tfidf_vectorizer
+
+from sklearn.metrics.pairwise import cosine_similarity
+
+def select_by_embedding_proximity(tp, emb, n=1000):
+    tp_accs = [acc for acc in tp if acc in emb.columns]
+    avg_emb = emb[tp_accs].mean(axis=1).values.reshape(1, -1)
+    sims = cosine_similarity(avg_emb, emb.values.T)[0]
+    sim_series = pd.Series(sims, index=emb.columns)
+    top_accs = set(sim_series.nlargest(n).index.tolist())
+    return list(top_accs | set(tp_accs))
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
