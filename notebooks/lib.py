@@ -3,7 +3,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 
 import os, os.path, subprocess
 
-VERSION='1.0.27'
+VERSION='1.0.28'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -235,27 +235,34 @@ def top_features(logreg_model,tfidf_model,nembed=0,use_embed=True,use_tfidf=True
 
         return significant_embedding_coeffs,non_zero_tfidf_coeffs,most_important_features.drop(columns=['Abs_Coefficient'])
 
-def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn, use_embed=True, use_tfidf=True, n=30):
+def score_all_studies(model, emb, md, tfidf_vectorizer, train_accessions, tp, tn, use_embed=True, use_tfidf=True, n=30, batch_size=500):
     md_indexed = md.set_index('prideacc')
     allacc = [acc for acc in emb.columns if acc in md_indexed.index]
+    nbatches = (len(allacc) + batch_size - 1) // batch_size
+    print(f"Scoring {len(allacc)} studies in {nbatches} batches...")
 
-    feature_parts = []
-    if use_embed:
-        feature_parts.append(emb[allacc].values.T)
-    if use_tfidf:
-        texts = md_indexed.loc[allacc, 'text']
-        feature_parts.append(tfidf_vectorizer.transform(texts).toarray())
+    all_probs = []
+    for i in range(0, len(allacc), batch_size):
+        batch = allacc[i:i+batch_size]
+        print(f"  Batch {i//batch_size + 1}/{nbatches}...")
+        feature_parts = []
+        if use_embed:
+            feature_parts.append(emb[batch].values.T)
+        if use_tfidf:
+            texts = md_indexed.loc[batch, 'text']
+            feature_parts.append(tfidf_vectorizer.transform(texts).toarray())
+        all_probs.extend(model.predict_proba(np.hstack(feature_parts))[:, 1])
 
-    probs = model.predict_proba(np.hstack(feature_parts))[:, 1]
-
-    train_set = set(train_accessions)
+    train_set, tp_set, tn_set = set(train_accessions), set(tp), set(tn)
     results = pd.DataFrame({
         'prideacc': allacc,
-        'probability': probs,
+        'title': md_indexed.loc[allacc, 'title'].values,
+        'probability': all_probs,
         'in_training': [acc in train_set for acc in allacc],
-        'true_positive': [acc in set(tp) for acc in allacc],
-        'true_negative': [acc in set(tn) for acc in allacc],
+        'true_positive': [acc in tp_set for acc in allacc],
+        'true_negative': [acc in tn_set for acc in allacc],
     })
+    print("  Done.")
     return results.sort_values('probability', ascending=False).head(n).reset_index(drop=True)
 
 import re
