@@ -4,7 +4,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 import os, os.path, subprocess
 import pandas
 
-VERSION='1.0.6'
+VERSION='1.0.7'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -99,13 +99,13 @@ def split_train_test(allacc, seeds, neg_seeds, test_size=0.2, bgsize=25):
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-def create_tfidf_features(md_dataframe, train_accessions, train_y, all_accessions, positive_only=False,**kwargs):
+def create_tfidf_features(md_dataframe, train_accessions, train_y, test_accessions, positive_only=False,**kwargs):
     # Filter training accessions to include only 'true cases' (where train_y is 1)
     if positive_only:
       true_train_accessions = [acc for acc, y_val in zip(train_accessions, train_y) if y_val == 1]
     else:
       true_train_accessions = train_accessions
-    allacc = sorted(all_accessions)
+
     # Prepare true case training data for TF-IDF fitting
     # Ensure the order of texts matches the order of true_train_accessions for correct indexing
     md_train_true_cases = md_dataframe[md_dataframe['prideacc'].isin(true_train_accessions)].set_index('prideacc').loc[true_train_accessions]
@@ -132,7 +132,7 @@ def create_tfidf_features(md_dataframe, train_accessions, train_y, all_accession
     )
 
     # Prepare testing data for TF-IDF transformation
-    md_test = md_dataframe[md_dataframe['prideacc'].isin(allacc)].set_index('prideacc').loc[allacc]
+    md_test = md_dataframe[md_dataframe['prideacc'].isin(test_accessions)].set_index('prideacc').loc[test_accessions]
     test_texts = md_test['text']
 
     # Apply the fitted TF-IDF model to test data (transform only)
@@ -141,11 +141,11 @@ def create_tfidf_features(md_dataframe, train_accessions, train_y, all_accession
     # Create a DataFrame for testing TF-IDF values
     tfidf_df_test = pd.DataFrame(
         tfidf_test_matrix.toarray(),
-        index=allacc, # Index by pride accessions
+        index=test_accessions, # Index by pride accessions
         columns=tfidf_vectorizer.get_feature_names_out()
     )
 
-    # tfidf_df = pd.concat([tfidf_df_train, tfidf_df_test]).T
+    tfidf_df = pd.concat([tfidf_df_train, tfidf_df_test]).T
 
     return tfidf_df_test, tfidf_vectorizer
 
