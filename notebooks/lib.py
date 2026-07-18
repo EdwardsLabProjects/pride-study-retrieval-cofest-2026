@@ -4,7 +4,7 @@ GITHUB = "https://raw.githubusercontent.com/EdwardsLabProjects/pride-study-retri
 import os, os.path, subprocess
 import pandas
 
-VERSION='1.0.15'
+VERSION='1.0.16'
 
 def download_embeddings(model="openai-3-small"):
     # files...
@@ -205,7 +205,6 @@ def top_features(logreg_model,tfidf_model,nembed=0,use_embed=True,use_tfidf=True
         # Calculate significant embedding coefficients
         embedding_coefficients = logreg_model.coef_[0][:nembed]
         significant_embedding_coeffs = np.sum(embedding_coefficients != 0)
-        print(f"\nNumber of semantic embedding non-zero coefficients: {significant_embedding_coeffs}")
 
     if use_tfidf:
         # Get the TF-IDF feature names from the fitted vectorizer
